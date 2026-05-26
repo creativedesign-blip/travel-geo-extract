@@ -1,0 +1,377 @@
+alias,location_id,alias_type,confidence,notes
+中華民國,TW,formal,1.0,
+Taiwan,TW,en,1.0,
+Formosa,TW,nickname,0.9,舊名
+寶島,TW,nickname,0.8,
+タイワン,TW,ja,1.0,
+台北市,TW-TPE,formal,1.0,
+Taipei,TW-TPE,en,1.0,
+タイペイ,TW-TPE,ja,1.0,
+桃園市,TW-TYU,formal,1.0,
+Taoyuan,TW-TYU,en,1.0,
+台中市,TW-TXG,formal,1.0,
+Taichung,TW-TXG,en,1.0,
+台南市,TW-TNN,formal,1.0,
+Tainan,TW-TNN,en,1.0,
+高雄市,TW-KHH,formal,1.0,
+Kaohsiung,TW-KHH,en,1.0,
+墾丁,TW-PIF,landmark,0.95,屏東代表景點
+阿里山,TW-CYI,landmark,0.95,嘉義代表景點
+日月潭,TW-NTO,landmark,0.95,南投代表景點
+清境,TW-NTO,landmark,0.95,南投清境農場
+太魯閣,TW-HUA,landmark,0.95,花蓮代表景點
+日本國,JP,formal,1.0,
+Japan,JP,en,1.0,
+ニッポン,JP,ja,1.0,
+ニホン,JP,ja,1.0,
+東瀛,JP,nickname,0.85,
+扶桑,JP,nickname,0.7,古名
+和國,JP,nickname,0.6,
+東京都,JP-KTO-TYO,formal,1.0,
+Tokyo,JP-KTO-TYO,en,1.0,
+トウキョウ,JP-KTO-TYO,ja,1.0,
+江戶,JP-KTO-TYO,historic,0.95,東京舊名
+Osaka,JP-KSI-OSA,en,1.0,
+オオサカ,JP-KSI-OSA,ja,1.0,
+大坂,JP-KSI-OSA,historic,0.9,大阪古寫法
+Kyoto,JP-KSI-KYT,en,1.0,
+キョウト,JP-KSI-KYT,ja,1.0,
+平安京,JP-KSI-KYT,historic,0.9,京都古名
+Hokkaido,JP-HKD,en,1.0,
+ホッカイドウ,JP-HKD,ja,1.0,
+札幌市,JP-HKD-SPK,formal,1.0,
+Sapporo,JP-HKD-SPK,en,1.0,
+富良野町,JP-HKD-FRN,formal,1.0,
+Furano,JP-HKD-FRN,en,1.0,
+飛驒高山,JP-CBU-TKY,formal,1.0,完整稱呼避免歧義
+Takayama,JP-CBU-TKY,en,1.0,
+白川鄉,JP-CBU-SKR,formal,1.0,
+合掌村,JP-CBU-SKR,landmark,0.95,白川鄉景點
+Shirakawago,JP-CBU-SKR,en,1.0,
+名古屋市,JP-CBU-NGY,formal,1.0,
+Nagoya,JP-CBU-NGY,en,1.0,
+大韓民國,KR,formal,1.0,
+South Korea,KR,en,1.0,
+Korea,KR,en,0.9,可能也指北韓
+韓,KR,abbr,0.6,
+서울,KR-SEL,ko,1.0,
+Seoul,KR-SEL,en,1.0,
+漢城,KR-SEL,historic,0.9,首爾舊名
+부산,KR-PUS,ko,1.0,
+Busan,KR-PUS,en,1.0,
+제주,KR-CJU,ko,1.0,
+Jeju,KR-CJU,en,1.0,
+泰王國,TH,formal,1.0,
+Thailand,TH,en,1.0,
+暹羅,TH,historic,0.95,泰國舊名
+Siam,TH,historic,0.95,
+Bangkok,TH-BKK,en,1.0,
+กรุงเทพ,TH-BKK,th,1.0,
+Chiang Mai,TH-CNX,en,1.0,
+清邁府,TH-CNX,formal,1.0,
+Phuket,TH-HKT,en,1.0,
+普吉島,TH-HKT,formal,1.0,
+Pattaya,TH-PTY,en,1.0,
+越南社會主義共和國,VN,formal,1.0,
+Vietnam,VN,en,1.0,
+安南,VN,historic,0.85,越南古名
+Hanoi,VN-HAN,en,1.0,
+Ho Chi Minh,VN-SGN,en,1.0,
+Ho Chi Minh City,VN-SGN,en,1.0,
+HCMC,VN-SGN,abbr,0.9,
+西貢,VN-SGN,historic,0.95,胡志明市舊名
+Saigon,VN-SGN,historic,0.95,
+Da Nang,VN-DAD,en,1.0,
+Halong Bay,VN-HLG,en,1.0,
+Ha Long,VN-HLG,en,1.0,
+菲律賓共和國,PH,formal,1.0,
+Philippines,PH,en,1.0,
+Manila,PH-MNL,en,1.0,
+Cebu,PH-CEB,en,1.0,
+Boracay,PH-BRC,en,1.0,
+Palawan,PH-PPS,en,1.0,
+印度尼西亞,ID,formal,1.0,
+Indonesia,ID,en,1.0,
+峇里,ID-DPS,abbr,0.95,
+Bali,ID-DPS,en,1.0,
+峇里島,ID-DPS,formal,1.0,
+Jakarta,ID-CGK,en,1.0,
+中華人民共和國,CN,formal,1.0,
+PRC,CN,abbr,0.9,
+China,CN,en,1.0,
+大陸,CN,nickname,0.7,語境依賴
+神州,CN,nickname,0.7,
+華東地區,CN-EAS,formal,1.0,
+華北地區,CN-NOR,formal,1.0,
+東北地區,CN-NEA,formal,1.0,中國東北
+西北地區,CN-NWE,formal,1.0,
+江南,CN-EAS,nickname,0.9,長三角水鄉 含蘇杭
+江南水鄉,CN-EAS,nickname,0.95,
+江浙,CN-EAS,nickname,0.95,
+長三角,CN-EAS,nickname,0.95,
+Shanghai,CN-EAS-SHA,en,1.0,
+上海市,CN-EAS-SHA,formal,1.0,
+申城,CN-EAS-SHA,nickname,0.85,上海別名
+魔都,CN-EAS-SHA,nickname,0.8,上海別名
+Beijing,CN-NOR-BJS,en,1.0,
+北京市,CN-NOR-BJS,formal,1.0,
+京城,CN-NOR-BJS,nickname,0.7,
+燕京,CN-NOR-BJS,historic,0.8,北京古名
+北平,CN-NOR-BJS,historic,0.9,北京民國時期名
+Hangzhou,CN-EAS-HGH,en,1.0,
+杭城,CN-EAS-HGH,nickname,0.8,
+Suzhou,CN-EAS-SUZ,en,1.0,
+姑蘇,CN-EAS-SUZ,historic,0.9,蘇州古名
+Nanjing,CN-EAS-NJG,en,1.0,
+金陵,CN-EAS-NJG,historic,0.9,南京古名
+Xi'an,CN-NWE-XIY,en,1.0,
+西安市,CN-NWE-XIY,formal,1.0,
+長安,CN-NWE-XIY,historic,0.9,西安古名
+Harbin,CN-NEA-HRB,en,1.0,
+冰城,CN-NEA-HRB,nickname,0.85,哈爾濱別名
+Dalian,CN-NEA-DLC,en,1.0,
+Dunhuang,CN-NWE-DNH,en,1.0,
+莫高窟,CN-NWE-DNH,landmark,0.9,敦煌代表景點
+高山,JP-CBU-TKY,ambig,0.5,需上下文消歧 - 可能是日本高山或一般詞
+倫敦,GB-LON,ambig,0.5,需消歧 - 英國或加拿大
+威尼斯,IT,ambig,0.5,需消歧 - 可能是比喻
+弘大,KR,nickname,0.85,從 Excel 匯入
+樂天世界,KR,nickname,0.85,從 Excel 匯入
+甘川洞,KR,nickname,0.85,從 Excel 匯入
+城山日出峰,KR,landmark,0.85,從 Excel 匯入
+胡志明市,VN,nickname,0.85,從 Excel 匯入
+陸龍灣,VN,nickname,0.85,從 Excel 匯入
+寧平,VN,nickname,0.85,從 Excel 匯入
+VinWonders,VN,nickname,0.85,從 Excel 匯入
+Charm of Venice,VN,nickname,0.85,從 Excel 匯入
+水舞秀,VN,nickname,0.85,從 Excel 匯入
+太陽世界,VN,nickname,0.85,從 Excel 匯入
+華欣,TH,nickname,0.85,從 Excel 匯入
+丹嫩莎朵水上市場,TH,nickname,0.85,從 Excel 匯入
+安帕瓦,TH,nickname,0.85,從 Excel 匯入
+四方水上市場,TH,nickname,0.85,從 Excel 匯入
+Gardens by the Bay,SG,nickname,0.85,從 Excel 匯入
+Supertree,SG,nickname,0.85,從 Excel 匯入
+聖淘沙,SG,nickname,0.85,從 Excel 匯入
+牛車水,SG,nickname,0.85,從 Excel 匯入
+小印度,SG,nickname,0.85,從 Excel 匯入
+克拉碼頭,SG,nickname,0.85,從 Excel 匯入
+樟宜機場,SG,nickname,0.85,從 Excel 匯入
+吉隆坡,MY-KUL,nickname,0.85,從 Excel 匯入
+黑風洞,MY,nickname,0.85,從 Excel 匯入
+馬六甲,MY-MKZ,nickname,0.85,從 Excel 匯入
+喬治市,MY,nickname,0.85,從 Excel 匯入
+蘭卡威,MY,nickname,0.85,從 Excel 匯入
+雲頂高原,MY,nickname,0.85,從 Excel 匯入
+沙巴,MY-BKI,nickname,0.85,從 Excel 匯入
+亞庇,MY-BKI,nickname,0.85,從 Excel 匯入
+仙本那,MY,nickname,0.85,從 Excel 匯入
+情人崖,ID,nickname,0.85,從 Excel 匯入
+努沙杜瓦,ID,nickname,0.85,從 Excel 匯入
+科莫多,ID,nickname,0.85,從 Excel 匯入
+天空之門,ID,nickname,0.85,從 Excel 匯入
+眼鏡猴,PH,nickname,0.85,從 Excel 匯入
+十分,TW,nickname,0.85,從 Excel 匯入
+蘭嶼,TW,nickname,0.85,從 Excel 匯入
+成都,CN,nickname,0.85,從 Excel 匯入
+重慶,CN,nickname,0.85,從 Excel 匯入
+桂林,CN,nickname,0.85,從 Excel 匯入
+張家界,CN,nickname,0.85,從 Excel 匯入
+九寨溝,CN,nickname,0.85,從 Excel 匯入
+麗江,CN,nickname,0.85,從 Excel 匯入
+香格里拉,CN,nickname,0.85,從 Excel 匯入
+樂山大佛,CN,landmark,0.85,從 Excel 匯入
+維多利亞港,HK,nickname,0.85,從 Excel 匯入
+星光大道,HK,nickname,0.85,從 Excel 匯入
+尖沙咀,HK,nickname,0.85,從 Excel 匯入
+中環,HK,nickname,0.85,從 Excel 匯入
+銅鑼灣,HK,nickname,0.85,從 Excel 匯入
+昂坪360,HK,nickname,0.85,從 Excel 匯入
+天壇大佛,HK,nickname,0.85,從 Excel 匯入
+大三巴,MO,nickname,0.85,從 Excel 匯入
+議事亭前地,MO,nickname,0.85,從 Excel 匯入
+官也街,MO,nickname,0.85,從 Excel 匯入
+路氹,MO-COT,nickname,0.85,從 Excel 匯入
+威尼斯人,MO,nickname,0.85,從 Excel 匯入
+澳門威尼斯人,MO,nickname,0.85,從 Excel 匯入
+巴黎人,MO,nickname,0.85,從 Excel 匯入
+澳門巴黎人,MO,nickname,0.85,從 Excel 匯入
+倫敦人,MO,nickname,0.85,從 Excel 匯入
+暹粒,KH-REP,nickname,0.85,從 Excel 匯入
+吳哥窟,KH,nickname,0.85,從 Excel 匯入
+金邊,KH-PNH,nickname,0.85,從 Excel 匯入
+聖索菲亞,TR,nickname,0.85,從 Excel 匯入
+博斯普魯斯,TR,nickname,0.85,從 Excel 匯入
+卡帕多奇亞,TR-NAV,nickname,0.85,從 Excel 匯入
+以弗所,TR,nickname,0.85,從 Excel 匯入
+安塔利亞,TR,nickname,0.85,從 Excel 匯入
+熱氣球,TR,nickname,0.85,從 Excel 匯入
+阿聯酋,AE,nickname,0.85,從 Excel 匯入
+杜拜,AE-DXB,nickname,0.85,從 Excel 匯入
+阿布達比,AE-AUH,nickname,0.85,從 Excel 匯入
+沙漠衝沙,AE,nickname,0.85,從 Excel 匯入
+羅浮宮阿布達比,AE,nickname,0.85,從 Excel 匯入
+羅馬,IT-ROM,nickname,0.85,從 Excel 匯入
+競技場,IT,nickname,0.85,從 Excel 匯入
+梵蒂岡,IT,nickname,0.85,從 Excel 匯入
+佛羅倫斯,IT-FLR,nickname,0.85,從 Excel 匯入
+聖馬可廣場,IT,nickname,0.85,從 Excel 匯入
+貢多拉,IT,nickname,0.85,從 Excel 匯入
+米蘭,IT-MIL,nickname,0.85,從 Excel 匯入
+五漁村,IT,nickname,0.85,從 Excel 匯入
+阿瑪菲,IT,nickname,0.85,從 Excel 匯入
+龐貝,IT,nickname,0.85,從 Excel 匯入
+巴黎,FR-PAR,nickname,0.85,從 Excel 匯入
+凱旋門,FR,nickname,0.85,從 Excel 匯入
+香榭麗舍,FR,nickname,0.85,從 Excel 匯入
+普羅旺斯,FR,nickname,0.85,從 Excel 匯入
+尼斯,FR-NCE,nickname,0.85,從 Excel 匯入
+亞維農,FR,nickname,0.85,從 Excel 匯入
+蘇黎世,CH-ZRH,nickname,0.85,從 Excel 匯入
+琉森,CH-LCN,nickname,0.85,從 Excel 匯入
+少女峰,CH,nickname,0.85,從 Excel 匯入
+馬特洪峰,CH,nickname,0.85,從 Excel 匯入
+策馬特,CH-ZRT,nickname,0.85,從 Excel 匯入
+因特拉肯,CH-INT,nickname,0.85,從 Excel 匯入
+伯恩,CH-BRN,nickname,0.85,從 Excel 匯入
+黃金列車,CH,nickname,0.85,從 Excel 匯入
+冰河列車,CH,nickname,0.85,從 Excel 匯入
+維也納,AT-VIE,nickname,0.85,從 Excel 匯入
+哈修塔特,AT-HST,nickname,0.85,從 Excel 匯入
+莫札特,AT,nickname,0.85,從 Excel 匯入
+金色大廳,AT,nickname,0.85,從 Excel 匯入
+柏林,DE-BER,nickname,0.85,從 Excel 匯入
+慕尼黑,DE-MUC,nickname,0.85,從 Excel 匯入
+法蘭克福,DE-FRA,nickname,0.85,從 Excel 匯入
+布蘭登堡門,DE,nickname,0.85,從 Excel 匯入
+羅曼蒂克大道,DE,nickname,0.85,從 Excel 匯入
+黑森林,DE,nickname,0.85,從 Excel 匯入
+啤酒節,DE,nickname,0.85,從 Excel 匯入
+大笨鐘,GB,nickname,0.85,從 Excel 匯入
+牛津,GB-OXF,nickname,0.85,從 Excel 匯入
+巨石陣,GB,nickname,0.85,從 Excel 匯入
+阿姆斯特丹,NL-AMS,nickname,0.85,從 Excel 匯入
+風車村,NL,nickname,0.85,從 Excel 匯入
+贊瑟斯漢斯,NL,nickname,0.85,從 Excel 匯入
+庫肯霍夫,NL,nickname,0.85,從 Excel 匯入
+羊角村,NL,nickname,0.85,從 Excel 匯入
+鬱金香,NL,nickname,0.85,從 Excel 匯入
+巴塞隆納,ES,nickname,0.85,從 Excel 匯入
+聖家堂,ES,nickname,0.85,從 Excel 匯入
+高第,ES,nickname,0.85,從 Excel 匯入
+馬德里,ES,nickname,0.85,從 Excel 匯入
+塞維亞,ES,nickname,0.85,從 Excel 匯入
+格拉納達,ES,nickname,0.85,從 Excel 匯入
+佛朗明哥,ES,nickname,0.85,從 Excel 匯入
+里斯本,PT,nickname,0.85,從 Excel 匯入
+羅卡角,PT,nickname,0.85,從 Excel 匯入
+波多,PT,nickname,0.85,從 Excel 匯入
+辛特拉,PT,nickname,0.85,從 Excel 匯入
+法朵,PT,nickname,0.85,從 Excel 匯入
+雅典,GR,nickname,0.85,從 Excel 匯入
+聖托里尼,GR,nickname,0.85,從 Excel 匯入
+米克諾斯,GR,nickname,0.85,從 Excel 匯入
+愛琴海,GR,nickname,0.85,從 Excel 匯入
+札金索斯,GR,nickname,0.85,從 Excel 匯入
+布拉格,CZ,nickname,0.85,從 Excel 匯入
+老城廣場,CZ,nickname,0.85,從 Excel 匯入
+天文鐘,CZ,nickname,0.85,從 Excel 匯入
+庫倫洛夫,CZ,nickname,0.85,從 Excel 匯入
+CK小鎮,CZ,nickname,0.85,從 Excel 匯入
+布達佩斯,HU,nickname,0.85,從 Excel 匯入
+國會大廈,HU,nickname,0.85,從 Excel 匯入
+塞切尼溫泉,HU,nickname,0.85,從 Excel 匯入
+英雄廣場,HU,nickname,0.85,從 Excel 匯入
+多瑙河夜景,HU,nickname,0.85,從 Excel 匯入
+杜布羅夫尼克,HR,nickname,0.85,從 Excel 匯入
+普利特維采,HR,nickname,0.85,從 Excel 匯入
+史普利特,HR,nickname,0.85,從 Excel 匯入
+亞得里亞海,HR,nickname,0.85,從 Excel 匯入
+札達爾,HR,nickname,0.85,從 Excel 匯入
+開羅,EG,nickname,0.85,從 Excel 匯入
+獅身人面像,EG,nickname,0.85,從 Excel 匯入
+路克索,EG,nickname,0.85,從 Excel 匯入
+阿布辛貝,EG,nickname,0.85,從 Excel 匯入
+帝王谷,EG,nickname,0.85,從 Excel 匯入
+亞斯文,EG,nickname,0.85,從 Excel 匯入
+紅海,EG,nickname,0.85,從 Excel 匯入
+卡薩布蘭卡,MA,nickname,0.85,從 Excel 匯入
+馬拉喀什,MA,nickname,0.85,從 Excel 匯入
+菲斯,MA,nickname,0.85,從 Excel 匯入
+舍夫沙萬,MA,nickname,0.85,從 Excel 匯入
+撒哈拉沙漠,MA,nickname,0.85,從 Excel 匯入
+梅爾祖卡,MA,nickname,0.85,從 Excel 匯入
+開普敦,ZA,nickname,0.85,從 Excel 匯入
+好望角,ZA,nickname,0.85,從 Excel 匯入
+雪梨,AU,nickname,0.85,從 Excel 匯入
+墨爾本,AU,nickname,0.85,從 Excel 匯入
+布里斯本,AU,nickname,0.85,從 Excel 匯入
+雪梨歌劇院,AU,nickname,0.85,從 Excel 匯入
+大堡礁,AU,nickname,0.85,從 Excel 匯入
+凱恩斯,AU,nickname,0.85,從 Excel 匯入
+大洋路,AU,nickname,0.85,從 Excel 匯入
+十二門徒石,AU,nickname,0.85,從 Excel 匯入
+烏魯魯,AU,nickname,0.85,從 Excel 匯入
+塔斯馬尼亞,AU,nickname,0.85,從 Excel 匯入
+奧克蘭,NZ,nickname,0.85,從 Excel 匯入
+皇后鎮,NZ,nickname,0.85,從 Excel 匯入
+米佛峽灣,NZ,nickname,0.85,從 Excel 匯入
+羅托魯瓦,NZ,nickname,0.85,從 Excel 匯入
+哈比村,NZ,nickname,0.85,從 Excel 匯入
+紐約,US,nickname,0.85,從 Excel 匯入
+自由女神,US,nickname,0.85,從 Excel 匯入
+時代廣場,US,nickname,0.85,從 Excel 匯入
+洛杉磯,US,nickname,0.85,從 Excel 匯入
+拉斯維加斯,US,nickname,0.85,從 Excel 匯入
+大峽谷,US,nickname,0.85,從 Excel 匯入
+優勝美地,US,nickname,0.85,從 Excel 匯入
+黃石,US,nickname,0.85,從 Excel 匯入
+奧蘭多,US,nickname,0.85,從 Excel 匯入
+溫哥華,CA,nickname,0.85,從 Excel 匯入
+多倫多,CA,nickname,0.85,從 Excel 匯入
+班夫,CA,nickname,0.85,從 Excel 匯入
+洛磯山脈,CA,landmark,0.85,從 Excel 匯入
+魁北克,CA,nickname,0.85,從 Excel 匯入
+蒙特婁,CA,nickname,0.85,從 Excel 匯入
+黃刀鎮,CA,nickname,0.85,從 Excel 匯入
+坎昆,MX,nickname,0.85,從 Excel 匯入
+奇琴伊察,MX,nickname,0.85,從 Excel 匯入
+圖倫,MX,nickname,0.85,從 Excel 匯入
+瓜納華托,MX,nickname,0.85,從 Excel 匯入
+亡靈節,MX,nickname,0.85,從 Excel 匯入
+馬雅,MX,nickname,0.85,從 Excel 匯入
+雷克雅維克,IS,nickname,0.85,從 Excel 匯入
+黃金圈,IS,nickname,0.85,從 Excel 匯入
+間歇泉,IS,nickname,0.85,從 Excel 匯入
+辛格維利爾,IS,nickname,0.85,從 Excel 匯入
+赫爾辛基,FI,nickname,0.85,從 Excel 匯入
+羅瓦涅米,FI,nickname,0.85,從 Excel 匯入
+聖誕老人村,FI,nickname,0.85,從 Excel 匯入
+拉普蘭,FI,nickname,0.85,從 Excel 匯入
+薩利色爾卡,FI,nickname,0.85,從 Excel 匯入
+奧斯陸,NO,nickname,0.85,從 Excel 匯入
+卑爾根,NO,nickname,0.85,從 Excel 匯入
+松恩峽灣,NO,nickname,0.85,從 Excel 匯入
+蓋朗厄爾峽灣,NO,nickname,0.85,從 Excel 匯入
+羅弗敦,NO,nickname,0.85,從 Excel 匯入
+北角,NO,nickname,0.85,從 Excel 匯入
+特羅姆瑟,NO,nickname,0.85,從 Excel 匯入
+德里,IN,nickname,0.85,從 Excel 匯入
+阿格拉,IN,nickname,0.85,從 Excel 匯入
+泰姬瑪哈陵,IN,nickname,0.85,從 Excel 匯入
+齋浦爾,IN,nickname,0.85,從 Excel 匯入
+風之宮殿,IN,nickname,0.85,從 Excel 匯入
+瓦拉納西,IN,nickname,0.85,從 Excel 匯入
+孟買,IN,nickname,0.85,從 Excel 匯入
+齋沙默爾,IN,nickname,0.85,從 Excel 匯入
+加德滿都,NP,nickname,0.85,從 Excel 匯入
+博卡拉,NP,nickname,0.85,從 Excel 匯入
+安娜普urna,NP,nickname,0.85,從 Excel 匯入
+安娜普納,NP,nickname,0.85,從 Excel 匯入
+珠峰基地營,NP,nickname,0.85,從 Excel 匯入
+奇旺,NP,nickname,0.85,從 Excel 匯入
+納加闊特,NP,nickname,0.85,從 Excel 匯入
+中國,JP-CGK,ambig,0.5,日本中國地方 - 與 CN 雙映射，靠 disambig_rules 消歧
+酒鄉,ZA,nickname,0.85,從 Excel 匯入
+魔戒,NZ,nickname,0.85,從 Excel 匯入
+玻璃屋,FI,nickname,0.85,從 Excel 匯入
