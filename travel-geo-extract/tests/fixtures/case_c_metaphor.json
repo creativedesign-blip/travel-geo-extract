@@ -1,0 +1,9 @@
+{
+  "id": "C",
+  "description": "東方威尼斯比喻 - 不應誤標義大利",
+  "input": "江南東方威尼斯水鄉 6 日",
+  "expected_tags": [
+    {"country": "中國", "region": "華東", "city": null}
+  ],
+  "expected_filtered": ["威尼斯"]
+}

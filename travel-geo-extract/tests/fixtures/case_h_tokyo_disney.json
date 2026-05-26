@@ -1,0 +1,10 @@
+{
+  "id": "H",
+  "description": "弱信號 - 東京迪士尼 有國家強信號 不發警告",
+  "input": "東京迪士尼 5 日遊",
+  "expected_tags": [
+    {"country": "日本", "region": "關東", "city": "東京"}
+  ],
+  "expected_filtered": [],
+  "expected_weak_warnings": []
+}

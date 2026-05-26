@@ -1,0 +1,27 @@
+# audit log (runtime metrics, regenerated each run)
+logs/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# extract output samples
+result.json
+result.md
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# pyright/mypy
+.mypy_cache/
+.pyright/

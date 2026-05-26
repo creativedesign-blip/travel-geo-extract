@@ -1,0 +1,9 @@
+{
+  "id": "B",
+  "description": "桃園機場集合 - 桃園不應該入標籤",
+  "input": "台灣桃園機場集合，搭機飛日本東京",
+  "expected_tags": [
+    {"country": "日本", "region": "關東", "city": "東京"}
+  ],
+  "expected_filtered": ["台灣", "桃園機場"]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "G",
+  "description": "弱信號 - 迪士尼度假村 無國家強信號 應發警告",
+  "input": "迪士尼度假村 5 日遊",
+  "expected_tags": [],
+  "expected_filtered": [],
+  "expected_weak_warnings": ["迪士尼"]
+}

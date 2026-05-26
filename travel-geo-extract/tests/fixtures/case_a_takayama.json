@@ -1,0 +1,11 @@
+{
+  "id": "A",
+  "description": "飛驒高山 + 合掌村 + 富士山（景點反向映射）",
+  "input": "日本飛驒高山合掌村 5 日，含富士山賞櫻",
+  "expected_tags": [
+    {"country": "日本", "region": "中部", "city": "高山"},
+    {"country": "日本", "region": "中部", "city": "白川鄉"},
+    {"country": "日本", "region": "中部", "city": "山梨"}
+  ],
+  "expected_filtered": []
+}

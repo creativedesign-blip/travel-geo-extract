@@ -1,0 +1,9 @@
+{
+  "id": "E",
+  "description": "曼谷轉機飛峇里島 - 曼谷不應入標籤",
+  "input": "曼谷轉機飛峇里島",
+  "expected_tags": [
+    {"country": "印尼", "region": null, "city": "峇里島"}
+  ],
+  "expected_filtered": ["曼谷"]
+}

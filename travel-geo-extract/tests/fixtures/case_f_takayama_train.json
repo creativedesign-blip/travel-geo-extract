@@ -1,0 +1,7 @@
+{
+  "id": "F",
+  "description": "高山火車 - 一般詞不應誤標日本飛驒高山",
+  "input": "搭乘高山火車欣賞山脈美景",
+  "expected_tags": [],
+  "expected_filtered": ["高山"]
+}

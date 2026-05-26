@@ -1,0 +1,10 @@
+{
+  "id": "L",
+  "description": "P1-5 集合語意 - 東京自由活動，集合於飯店 - 東京仍為目的地（沒有機場/航班 anchor 不觸發 departure）",
+  "input": "東京自由活動，集合於飯店",
+  "expected_tags": [
+    {"country": "日本", "region": "關東", "city": "東京"}
+  ],
+  "expected_filtered": [],
+  "expected_weak_warnings": []
+}

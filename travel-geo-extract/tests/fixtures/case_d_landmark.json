@@ -1,0 +1,9 @@
+{
+  "id": "D",
+  "description": "101 景點反向映射到台北",
+  "input": "101 跨年夜煙火秀",
+  "expected_tags": [
+    {"country": "台灣", "region": null, "city": "台北"}
+  ],
+  "expected_filtered": []
+}

@@ -1,0 +1,10 @@
+{
+  "id": "I",
+  "description": "弱信號 - 越南威尼斯（富國島 Grand World）不誤標義大利",
+  "input": "越南富國島 Grand World 仿威尼斯水都遊船",
+  "expected_tags": [
+    {"country": "越南", "region": null, "city": "富國島"}
+  ],
+  "expected_filtered": [],
+  "expected_weak_warnings": []
+}

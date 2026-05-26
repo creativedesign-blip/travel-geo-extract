@@ -1,0 +1,8 @@
+{
+  "id": "J",
+  "description": "P0-1 重疊處理 - 亞洲威尼斯應被消歧 SKIP，不留標籤",
+  "input": "亞洲威尼斯水都遊覽",
+  "expected_tags": [],
+  "expected_filtered": ["威尼斯"],
+  "expected_weak_warnings": []
+}
