@@ -55,11 +55,10 @@ metadata:
 - **直接文字**：跳到 Step 2
 - **`.txt / .md`**：直接讀
 - **`.docx / .pdf`**：呼叫 `scripts/read_doc.py <path>`，stdout 取得純文字
-- **`.jpg / .png`**：呼叫 `scripts/ocr_image.py <path>`，stdout 取得純文字
+- **`.jpg / .png`**：由外部 OCR pipeline（如 RapidOCR）先轉成文字再傳入
 
 ```bash
 python scripts/read_doc.py "C:/path/to/dm.pdf"
-python scripts/ocr_image.py "C:/path/to/dm.jpg"
 ```
 
 ### Step 2 — 規則層候選抽取
