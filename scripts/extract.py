@@ -23,6 +23,13 @@ import re
 import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Callable, Optional
+
+try:
+    import ahocorasick as _ac
+    _HAS_AC = True
+except ImportError:
+    _HAS_AC = False
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -81,30 +88,95 @@ class Candidate:
 
 # ---------- Step 2: candidate extraction ----------
 
+_ac_cache: dict[int, object] = {}
+
+
+def _build_ac_automaton(kb: KB):
+    """Build two Aho-Corasick automatons: one for CJK, one for non-CJK (lowercased)."""
+    cjk_auto = _ac.Automaton()
+    latin_auto = _ac.Automaton()
+
+    terms: list[tuple[str, str, object]] = []
+    for alias, als in kb.alias_index.items():
+        if alias:
+            terms.append((alias, "alias", [al.location_id for al in als]))
+    for name, lm in kb.landmark_index.items():
+        if name:
+            terms.append((name, "landmark", lm))
+
+    for term, kind, payload in terms:
+        entry = (term, kind, payload)
+        if _is_cjk(term):
+            cjk_auto.add_word(term, entry)
+        else:
+            latin_auto.add_word(term.lower(), entry)
+
+    if len(cjk_auto) > 0:
+        cjk_auto.make_automaton()
+    if len(latin_auto) > 0:
+        latin_auto.make_automaton()
+    return cjk_auto, latin_auto
+
+
+def _make_candidate(term: str, kind: str, payload, pos: int) -> Candidate:
+    end = pos + len(term)
+    cand = Candidate(text=term, start=pos, end=end, source=kind)
+    if kind == "alias":
+        cand.location_ids = list(dict.fromkeys(payload))
+    else:
+        cand.landmark = payload
+        cand.location_ids = [payload.location_id]
+    return cand
+
+
 def extract_candidates(text: str, kb: KB) -> list[Candidate]:
-    """Scan aliases + landmarks. Overlapping matches are KEPT (dedup happens after disambig).
+    """Scan aliases + landmarks. Overlapping matches are KEPT (dedup happens after disambig)."""
 
-    Why no occupy-and-skip: a long alias may legitimately swallow a shorter one
-    that has its own disambig rule (e.g. landmark `澳門威尼斯人` swallows `威尼斯`).
-    Sometimes the short candidate has a rule that should still fire. We collect
-    all, run disambig on every candidate, then `dedup_candidates` picks winners.
-    """
-    alias_terms = [
-        (alias, [al.location_id for al in als])
-        for alias, als in kb.alias_index.items()
-    ]
-    landmark_terms = list(kb.landmark_index.items())
+    if _HAS_AC:
+        return _extract_candidates_ac(text, kb)
+    return _extract_candidates_linear(text, kb)
 
+
+def _extract_candidates_ac(text: str, kb: KB) -> list[Candidate]:
+    """Aho-Corasick multi-pattern scan — O(n + matches)."""
+    kb_id = id(kb)
+    if kb_id not in _ac_cache:
+        _ac_cache[kb_id] = _build_ac_automaton(kb)
+    cjk_auto, latin_auto = _ac_cache[kb_id]
+
+    found: list[Candidate] = []
+
+    if len(cjk_auto) > 0:
+        for end_idx, (term, kind, payload) in cjk_auto.iter(text):
+            pos = end_idx - len(term) + 1
+            found.append(_make_candidate(term, kind, payload, pos))
+
+    if len(latin_auto) > 0:
+        lower_text = text.lower()
+        for end_idx, (term, kind, payload) in latin_auto.iter(lower_text):
+            pos = end_idx - len(term) + 1
+            end = pos + len(term)
+            left_ok = pos == 0 or not _is_word_char(text[pos - 1])
+            right_ok = end == len(text) or not _is_word_char(text[end])
+            if left_ok and right_ok:
+                found.append(_make_candidate(term, kind, payload, pos))
+
+    found.sort(key=lambda c: (c.start, -(c.end - c.start)))
+    return found
+
+
+def _extract_candidates_linear(text: str, kb: KB) -> list[Candidate]:
+    """Fallback linear scan when pyahocorasick is not installed."""
     all_terms: list[tuple[str, str, object]] = []
-    for term, ids in alias_terms:
-        all_terms.append((term, "alias", ids))
-    for term, lm in landmark_terms:
-        all_terms.append((term, "landmark", lm))
+    for alias, als in kb.alias_index.items():
+        if alias:
+            all_terms.append((alias, "alias", [al.location_id for al in als]))
+    for name, lm in kb.landmark_index.items():
+        if name:
+            all_terms.append((name, "landmark", lm))
 
     found: list[Candidate] = []
     for term, kind, payload in all_terms:
-        if not term:
-            continue
         lower_text = text.lower() if not _is_cjk(term) else text
         search_term = term.lower() if not _is_cjk(term) else term
         start = 0
@@ -119,14 +191,7 @@ def extract_candidates(text: str, kb: KB) -> list[Candidate]:
                 if not (left_ok and right_ok):
                     start = pos + 1
                     continue
-            cand = Candidate(text=term, start=pos, end=end, source=kind)
-            if kind == "alias":
-                cand.location_ids = list(dict.fromkeys(payload))  # type: ignore[arg-type]
-            else:
-                cand.landmark = payload  # type: ignore[assignment]
-                cand.location_ids = [payload.location_id]  # type: ignore[union-attr]
-            found.append(cand)
-            # advance by 1 char to allow overlapping matches at different positions
+            found.append(_make_candidate(term, kind, payload, pos))
             start = pos + 1
     found.sort(key=lambda c: (c.start, -(c.end - c.start)))
     return found
@@ -552,13 +617,78 @@ def scan_weak_signals(text: str, tags: list[dict], kb: KB) -> list[dict]:
     return warnings
 
 
+# ---------- Step 6: LLM review (optional) ----------
+
+_LLM_PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "llm_disambig.md"
+
+
+def _build_llm_prompt(text: str, rule_layer: dict) -> str:
+    """Build the full prompt for LLM review from template + rule layer output."""
+    template = ""
+    if _LLM_PROMPT_PATH.exists():
+        template = _LLM_PROMPT_PATH.read_text(encoding="utf-8")
+    return (
+        f"{template}\n\n---\n\n"
+        f"## 原文\n\n{text}\n\n"
+        f"## 規則層輸出\n\n```json\n{json.dumps(rule_layer, ensure_ascii=False, indent=2)}\n```\n\n"
+        "請依照上方任務 1-4 輸出嚴格 JSON。"
+    )
+
+
+def _call_codex_llm(prompt: str, *, codex_command: str = "codex", timeout: int = 120) -> dict | None:
+    """Call Codex for text-only LLM review (no image)."""
+    import shutil
+    import subprocess
+    import uuid
+
+    resolved = shutil.which(codex_command) or codex_command
+    tmp_dir = Path(__file__).resolve().parent.parent / ".cache" / "codex-llm-review"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    output_path = tmp_dir / f"{uuid.uuid4().hex}.json"
+
+    try:
+        completed = subprocess.run(
+            [resolved, "exec", "--output-last-message", str(output_path),
+             "--sandbox", "read-only", prompt],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            timeout=timeout,
+        )
+        if completed.returncode != 0 or not output_path.exists():
+            return None
+        raw = output_path.read_text(encoding="utf-8").strip()
+        if raw.startswith("```"):
+            raw = raw.split("\n", 1)[-1].rsplit("```", 1)[0]
+        return json.loads(raw)
+    except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError):
+        return None
+    finally:
+        output_path.unlink(missing_ok=True)
+
+
+LlmCallback = Callable[[str, dict], dict | None]
+
+
 # ---------- main pipeline ----------
 
-def extract(text: str, kb: KB | None = None) -> dict:
+def extract(
+    text: str,
+    kb: KB | None = None,
+    llm_review: LlmCallback | None = None,
+) -> dict:
+    """Extract geo tags from travel text.
+
+    Args:
+        text: OCR or plain text input.
+        kb: Knowledge base (loaded from SQLite if None).
+        llm_review: Optional callback(prompt, rule_layer) -> LLM JSON result.
+            Pass ``codex_llm_review`` for Codex integration, or any custom
+            function that accepts (prompt_str, rule_layer_dict) and returns
+            the LLM JSON output dict (or None to skip).
+    """
     kb = kb or load_kb()
-    raw_candidates = extract_candidates(text, kb)       # may contain overlapping matches
-    apply_disambig(text, raw_candidates, kb)            # run disambig on every candidate
-    candidates = dedup_candidates(raw_candidates)        # then collapse overlaps
+    raw_candidates = extract_candidates(text, kb)
+    apply_disambig(text, raw_candidates, kb)
+    candidates = dedup_candidates(raw_candidates)
     apply_role(text, candidates, kb)
     backfill = apply_landmark_backfill(candidates, kb)
     compressed = compress_tree(candidates, kb)
@@ -567,7 +697,7 @@ def extract(text: str, kb: KB | None = None) -> dict:
     filtered = [c.to_dict() for c in candidates if c.role != "destination"]
     needs_review = [c.to_dict() for c in candidates if 0.0 < c.confidence < 0.6 and c.role == "destination"]
 
-    return {
+    result = {
         "tags": compressed["tags"],
         "candidates_raw": [c.to_dict() for c in candidates],
         "filtered": filtered,
@@ -576,6 +706,25 @@ def extract(text: str, kb: KB | None = None) -> dict:
         "landmark_backfill": backfill,
         "input_chars": len(text),
     }
+
+    if llm_review and (needs_review or weak_warnings):
+        rule_layer = {
+            "tags": result["tags"],
+            "filtered": filtered,
+            "needs_review": needs_review,
+            "weak_warnings": weak_warnings,
+        }
+        prompt = _build_llm_prompt(text, rule_layer)
+        llm_result = llm_review(prompt, rule_layer)
+        if llm_result:
+            result["llm_review"] = llm_result
+
+    return result
+
+
+def codex_llm_review(prompt: str, _rule_layer: dict) -> dict | None:
+    """Ready-made LLM callback using Codex CLI."""
+    return _call_codex_llm(prompt)
 
 
 # ---------- output helpers ----------
