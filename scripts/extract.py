@@ -2,12 +2,14 @@
 
 Pipeline:
   1. preprocess          (text already normalized by caller)
-  2. extract_candidates  (longest-match scan with alias_index + landmark_index)
-  3. apply_disambig      (resolve ambiguous candidates via disambig_rules)
-  4. apply_role          (filter departure/transit/exclude/metaphor)
-  5. apply_landmark      (landmark/airport -> city/country backfill)
-  6. compress_tree       (dedup, build country->region->city->spot tree)
-  7. emit                (JSON for downstream LLM review, MD for humans)
+  2. extract_term_tags   (transport/hotel/meal/price/date layer)
+  3. extract_candidates  (longest-match scan with alias_index + landmark_index)
+  4. apply_disambig      (resolve ambiguous candidates via disambig_rules)
+  5. apply_term_precheck (filter product/facility phrases before geo tagging)
+  6. apply_role          (filter departure/transit/exclude/metaphor)
+  7. apply_landmark      (landmark/airport -> city/country backfill)
+  8. compress_tree       (dedup, build country->region->city->spot tree)
+  9. emit                (JSON for downstream LLM review, MD for humans)
 
 CLI:
   python extract.py extract --text "<text>"
@@ -68,6 +70,8 @@ class Candidate:
     resolved_id: str | None = None
     confidence: float = 0.7
     disambig_reason: str = ""
+    term_category: str = ""
+    term_phrase: str = ""
 
     def to_dict(self) -> dict:
         d = {
@@ -81,6 +85,9 @@ class Candidate:
             "confidence": round(self.confidence, 3),
             "disambig_reason": self.disambig_reason,
         }
+        if self.term_category:
+            d["term_category"] = self.term_category
+            d["term_phrase"] = self.term_phrase or self.text
         if self.landmark:
             d["landmark_type"] = self.landmark.type
         return d
@@ -329,9 +336,121 @@ def apply_disambig(text: str, candidates: list[Candidate], kb: KB) -> None:
                    text_snippet=text[max(0, cand.start - 20):min(len(text), cand.end + 20)])
 
 
-# ---------- Step 4: role detection ----------
+# ---------- Step 4: term tags + role detection ----------
 
 _CLAUSE_BREAK_RE = re.compile(r"[，。,.；;！？!?\n]")
+
+_TERM_SUFFIX_PATTERNS: list[tuple[str, re.Pattern]] = [
+    ("transport", re.compile(r"^(?:小?火車|鐵路|纜車|巴士|客運|遊船|郵輪|渡輪|航班|班機|新幹線|JR|路線)", re.IGNORECASE)),
+    ("hotel", re.compile(r"^(?:飯店|酒店|旅館|旅店|民宿|溫泉旅館|住宿|resort|hotel)", re.IGNORECASE)),
+    ("meal", re.compile(r"^(?:早餐|午餐|晚餐|餐|餐廳|料理|美食|饗宴)", re.IGNORECASE)),
+]
+
+_TERM_LITERAL_PATTERNS: list[tuple[str, re.Pattern]] = [
+    ("date", re.compile(r"(?:\d{1,2}[/-]\d{1,2}|\d{4}[./-]\d{1,2}[./-]\d{1,2}|\d+月(?:出發)?|暑假|連假|出發日)", re.IGNORECASE)),
+    ("price", re.compile(r"(?:(?:NT\$|TWD|USD|\$|每人|訂金|尾款)\s*[\d,]+(?:\s*(?:起|含稅|未稅|元|NTD|TWD|USD))?|[\d,]+\s*(?:起|含稅|未稅|元|NTD|TWD|USD))", re.IGNORECASE)),
+]
+
+_STRONG_GEO_CONTEXT_RE = re.compile(
+    r"(?:日本|韓國|泰國|越南|台灣|中國|香港|澳門|歐洲|北海道|九州|關西|關東|岐阜|飛驒|"
+    r"前往|抵達|遊覽|造訪|入住|夜宿|飛往|搭機飛|行程|第[一二三四五六七八九十\d]+天|D\d+)",
+    re.IGNORECASE,
+)
+
+
+def _append_term_tag(tags: list[dict], seen: set, *, phrase: str, category: str,
+                     start: int | None = None, end: int | None = None,
+                     confidence: float = 0.8, evidence: str = "",
+                     caution: str = "") -> None:
+    span = [start, end] if start is not None and end is not None else None
+    key = (phrase, category, start, end)
+    if key in seen:
+        return
+    seen.add(key)
+    tag = {
+        "phrase": phrase,
+        "category": category,
+        "confidence": round(confidence, 3),
+    }
+    if span:
+        tag["span"] = span
+    if evidence:
+        tag["evidence"] = evidence
+    if caution:
+        tag["caution"] = caution
+    tags.append(tag)
+
+
+def extract_term_tags(text: str) -> tuple[list[dict], set]:
+    """Extract non-geo travel terms that are still useful tags."""
+    tags: list[dict] = []
+    seen: set = set()
+    for category, rx in _TERM_LITERAL_PATTERNS:
+        for m in rx.finditer(text):
+            phrase = m.group(0).strip()
+            if not phrase:
+                continue
+            _append_term_tag(
+                tags, seen,
+                phrase=phrase,
+                category=category,
+                start=m.start(),
+                end=m.end(),
+                confidence=0.85,
+                evidence=phrase,
+                caution="supports itinerary/product metadata, not destination by itself",
+            )
+    return tags, seen
+
+
+def apply_term_precheck(text: str, candidates: list[Candidate],
+                        term_tags: list[dict], seen: set) -> None:
+    """Reject place-looking tokens that are actually product/facility phrases.
+
+    This folds the useful travel rules from industry-term-composer into the
+    extractor itself: a token should not become a geo tag just because it looks
+    like a place when the immediate phrase says transport, hotel, meal, price,
+    or date. Strong geo context keeps the candidate alive for later role rules.
+    """
+    for cand in candidates:
+        was_excluded = cand.role == "exclude"
+        if cand.landmark and cand.landmark.type in {"airport", "station"}:
+            continue
+
+        left_ctx, right_ctx = _clause_around(text, cand.start, cand.end, 18)
+        phrase_ctx = f"{left_ctx}{cand.text}{right_ctx}"
+        has_strong_geo_context = bool(_STRONG_GEO_CONTEXT_RE.search(phrase_ctx))
+
+        for category, rx in _TERM_SUFFIX_PATTERNS:
+            match = rx.search(right_ctx)
+            if match:
+                phrase = f"{cand.text}{match.group(0)}"
+                cand.term_category = category
+                cand.term_phrase = phrase
+                _append_term_tag(
+                    term_tags, seen,
+                    phrase=phrase,
+                    category=category,
+                    start=cand.start,
+                    end=cand.end + match.end(),
+                    confidence=0.85,
+                    evidence=phrase,
+                    caution="non-geo phrase unless strong destination context appears",
+                )
+                if not was_excluded and not has_strong_geo_context:
+                    cand.role = "exclude"
+                    cand.role_reason = f"term_precheck: {category} phrase"
+                    cand.disambig_reason = cand.disambig_reason or "non-destination term phrase"
+                    cand.confidence = min(cand.confidence, 0.2)
+                break
+        if cand.role == "exclude":
+            continue
+
+        for category, rx in _TERM_LITERAL_PATTERNS:
+            if rx.search(phrase_ctx):
+                cand.confidence = min(cand.confidence, 0.55)
+                cand.disambig_reason = cand.disambig_reason or f"weak geo evidence near {category} phrase"
+                break
 
 
 def _clause_around(text: str, start: int, end: int, window: int) -> tuple[str, str]:
@@ -686,9 +805,11 @@ def extract(
             the LLM JSON output dict (or None to skip).
     """
     kb = kb or load_kb()
+    term_tags, seen = extract_term_tags(text)
     raw_candidates = extract_candidates(text, kb)
     apply_disambig(text, raw_candidates, kb)
     candidates = dedup_candidates(raw_candidates)
+    apply_term_precheck(text, candidates, term_tags, seen)
     apply_role(text, candidates, kb)
     backfill = apply_landmark_backfill(candidates, kb)
     compressed = compress_tree(candidates, kb)
@@ -702,6 +823,7 @@ def extract(
         "candidates_raw": [c.to_dict() for c in candidates],
         "filtered": filtered,
         "needs_review": needs_review,
+        "term_tags": term_tags,
         "weak_warnings": weak_warnings,
         "landmark_backfill": backfill,
         "input_chars": len(text),
@@ -712,6 +834,7 @@ def extract(
             "tags": result["tags"],
             "filtered": filtered,
             "needs_review": needs_review,
+            "term_tags": term_tags,
             "weak_warnings": weak_warnings,
         }
         prompt = _build_llm_prompt(text, rule_layer)
@@ -750,6 +873,12 @@ def render_markdown(result: dict) -> str:
         lines.append("## 待人工/LLM 複核")
         for f in result["needs_review"]:
             lines.append(f"- `{f['text']}` → {f['location_ids']} {f.get('disambig_reason', '')}")
+
+    if result.get("term_tags"):
+        lines.append("")
+        lines.append("## 非地理旅遊標籤")
+        for t in result["term_tags"]:
+            lines.append(f"- `{t['phrase']}` → {t['category']} (信心度 {t['confidence']})")
 
     if result.get("weak_warnings"):
         lines.append("")
@@ -809,6 +938,28 @@ def _cmd_test(args: argparse.Namespace) -> None:
                 ok = False
                 diag.append(f"  missing weak warnings: {sorted(missing)}")
                 diag.append(f"  actual weak warnings:  {sorted(actual_warnings)}")
+
+        if "expected_filtered" in case:
+            actual_filtered = {f["text"] for f in result.get("filtered", [])}
+            expected_filtered = set(case["expected_filtered"])
+            missing_filtered = expected_filtered - actual_filtered
+            unexpected_filtered = actual_filtered - expected_filtered
+            if missing_filtered or unexpected_filtered:
+                ok = False
+                if missing_filtered:
+                    diag.append(f"  missing filtered: {sorted(missing_filtered)}")
+                if unexpected_filtered:
+                    diag.append(f"  unexpected filtered: {sorted(unexpected_filtered)}")
+                diag.append(f"  actual filtered: {sorted(actual_filtered)}")
+
+        if "expected_term_tags" in case:
+            actual_terms = {(t["phrase"], t["category"]) for t in result.get("term_tags", [])}
+            expected_terms = {(t["phrase"], t["category"]) for t in case["expected_term_tags"]}
+            missing_terms = expected_terms - actual_terms
+            if missing_terms:
+                ok = False
+                diag.append(f"  missing term tags: {sorted(missing_terms)}")
+                diag.append(f"  actual term tags:  {sorted(actual_terms)}")
 
         flag = "PASS" if ok else "FAIL"
         print(f"[{flag}] {case_file.name}: {case['description']}")

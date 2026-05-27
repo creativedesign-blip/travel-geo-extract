@@ -1,0 +1,11 @@
+{
+  "description": "詞組預檢 - 高山飯店 + 日期/價格 不應誤標日本飛驒高山",
+  "input": "高山飯店 2 晚，5月出發，每人 12900 起",
+  "expected_tags": [],
+  "expected_filtered": ["高山"],
+  "expected_term_tags": [
+    {"phrase": "高山飯店", "category": "hotel"},
+    {"phrase": "5月出發", "category": "date"},
+    {"phrase": "每人 12900 起", "category": "price"}
+  ]
+}
