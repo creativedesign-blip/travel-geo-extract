@@ -20,8 +20,13 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import sys
 from collections import Counter, defaultdict
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from load_kb import ensure_utf8_stdout  # noqa: E402
 
 LOG_PATH = Path(__file__).resolve().parent.parent / "logs" / "disambig_audit.jsonl"
 
@@ -53,6 +58,7 @@ def load(days: int | None) -> list[dict]:
 
 
 def main() -> None:
+    ensure_utf8_stdout()
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--days", type=int, default=None, help="window (days from now)")
     ap.add_argument("--event", default=None, help="filter to one event type")

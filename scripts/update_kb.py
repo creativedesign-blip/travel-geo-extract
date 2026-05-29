@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from load_kb import load_kb  # noqa: E402
+from load_kb import ensure_utf8_stdout, load_kb  # noqa: E402
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 DB_PATH = DATA_DIR / "geo_kb.db"
@@ -250,6 +250,7 @@ def cmd_remove(args: argparse.Namespace) -> None:
 # ---------- main ----------
 
 def main() -> None:
+    ensure_utf8_stdout()
     parser = argparse.ArgumentParser(description="Maintain travel-geo-extract knowledge base (SQLite)")
     sub = parser.add_subparsers(dest="cmd", required=True)
 

@@ -35,7 +35,7 @@ except ImportError:
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from load_kb import KB, Landmark, RoleKeyword, load_kb  # noqa: E402
+from load_kb import KB, Landmark, RoleKeyword, ensure_utf8_stdout, load_kb  # noqa: E402
 
 # ---------- audit logging (for v0.3 N-gram migration decision) ----------
 # Every disambig rule hit/miss + every weak_signal trigger is appended to
@@ -95,9 +95,6 @@ class Candidate:
 
 # ---------- Step 2: candidate extraction ----------
 
-_ac_cache: dict[int, object] = {}
-
-
 def _build_ac_automaton(kb: KB):
     """Build two Aho-Corasick automatons: one for CJK, one for non-CJK (lowercased)."""
     cjk_auto = _ac.Automaton()
@@ -146,10 +143,9 @@ def extract_candidates(text: str, kb: KB) -> list[Candidate]:
 
 def _extract_candidates_ac(text: str, kb: KB) -> list[Candidate]:
     """Aho-Corasick multi-pattern scan — O(n + matches)."""
-    kb_id = id(kb)
-    if kb_id not in _ac_cache:
-        _ac_cache[kb_id] = _build_ac_automaton(kb)
-    cjk_auto, latin_auto = _ac_cache[kb_id]
+    if kb.ac_automaton is None:
+        kb.ac_automaton = _build_ac_automaton(kb)
+    cjk_auto, latin_auto = kb.ac_automaton
 
     found: list[Candidate] = []
 
@@ -972,6 +968,7 @@ def _cmd_test(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
+    ensure_utf8_stdout()
     parser = argparse.ArgumentParser(description="Extract travel geo tags from text")
     sub = parser.add_subparsers(dest="cmd", required=True)
 

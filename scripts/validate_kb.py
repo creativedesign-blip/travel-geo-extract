@@ -16,6 +16,10 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from load_kb import ensure_utf8_stdout  # noqa: E402
+
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 DEFAULT_DB = DATA_DIR / "geo_kb.db"
 
@@ -221,6 +225,7 @@ def validate_db(db_path: Path) -> list[Issue]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    ensure_utf8_stdout()
     parser = argparse.ArgumentParser(description="Validate travel-geo-extract knowledge base (SQLite).")
     parser.add_argument("--db", type=Path, default=DEFAULT_DB)
     args = parser.parse_args(argv)

@@ -7,10 +7,29 @@ with `python scripts/build_db.py` before first use.
 from __future__ import annotations
 
 import sqlite3
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+
+
+def ensure_utf8_stdout() -> None:
+    """Force stdout/stderr to UTF-8 so CJK and emoji never crash on Windows.
+
+    Windows defaults console encoding to the locale codepage (e.g. cp950),
+    which lacks emoji (⚠️ ✅) and Japanese kana / Korean hangul. Without this,
+    `extract --format md` crashes on a weak-signal warning and audit_report
+    crashes printing its summary glyphs. No-op on Python builds where the
+    streams aren't reconfigurable (already-redirected pipes, <3.7).
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8")
+            except (ValueError, OSError):
+                pass
 
 
 @dataclass
@@ -105,6 +124,10 @@ class KB:
     landmark_index: dict[str, Landmark] = field(default_factory=dict)
     role_keywords: list[RoleKeyword] = field(default_factory=list)
     weak_signals: list[WeakSignal] = field(default_factory=list)
+    # lazily-built Aho-Corasick automatons, cached on the instance so their
+    # lifetime is tied to this KB (avoids id()-reuse staleness). compare=False
+    # keeps the dataclass's equality/repr unaffected.
+    ac_automaton: object = field(default=None, compare=False, repr=False)
 
     def parent_chain(self, location_id: str) -> list[Location]:
         """Walk up parent_id pointers, root first."""
@@ -271,6 +294,7 @@ def stats(kb: KB) -> dict[str, int]:
 
 
 if __name__ == "__main__":
+    ensure_utf8_stdout()
     kb = load_kb()
     s = stats(kb)
     print("Knowledge base loaded from SQLite:")
