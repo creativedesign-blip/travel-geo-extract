@@ -5,7 +5,7 @@ metadata:
   version: 0.2.0
   author: 大都會旅遊 (ddv.com.tw)
   scope: 41 國 — 國內(台灣)、東南亞(泰越菲印新馬柬)、東北亞(日韓)、港澳、中國 4 大區、中東(土耳其、阿聯酋)、歐洲 16 國、非洲(埃及、摩洛哥、南非)、大洋洲(澳紐)、美洲(美加墨)、南亞(印度、尼泊爾)
-  master_file: C:\Users\User\Desktop\2d3d\旅遊表\旅遊DM國家關鍵字排除Mapping表.xlsx
+  source_of_truth: data/geo_kb.db
 ---
 
 # travel-geo-extract
@@ -36,20 +36,20 @@ metadata:
 
 ## 知識表結構
 
-**權威主檔**是 Excel：`C:\Users\User\Desktop\2d3d\旅遊表\旅遊DM國家關鍵字排除Mapping表.xlsx`
-業務人員直接編輯該 Excel（含狀態、維護日期、人工覆核條件等管理欄位），
-然後跑 `python scripts/import_xlsx.py` 同步到下列 6 張 CSV：
+**唯一權威來源**是 SQLite：`data/geo_kb.db`（已隨 repo 提交，無 CSV / Excel 中介流程）。
+所有增刪改一律走 `scripts/update_kb.py`，改完用 `scripts/validate_kb.py` 驗證完整性。
+DB 內含下列 6 張表：
 
-| 檔案 | 用途 | 關鍵欄位 |
+| 表 | 用途 | 關鍵欄位 |
 |---|---|---|
-| `data/locations.csv` | 階層式地點主表 | id, name, type, parent_id |
-| `data/aliases.csv` | 別名/英日韓/舊名 → location_id | alias, location_id, alias_type |
-| `data/disambig_rules.csv` | 同名歧義消解（如「高山」） | ambiguous_term, context_regex, resolution |
-| `data/landmark_index.csv` | 景點/機場 → 所屬城市 | landmark, location_id, type |
-| `data/role_keywords.csv` | 角色判定關鍵詞（集合/轉機/比喻） | keyword, role, direction, weight |
-| `data/weak_signals.csv` | 跨國弱信號詞庫（迪士尼、威尼斯、極光、馬爾地夫級…） | weak_signal, naive_country, possible_countries, required_strong, guidance |
+| `locations` | 階層式地點主表 | id, name, type, parent_id |
+| `aliases` | 別名/英日韓/舊名 → location_id | alias, location_id, alias_type |
+| `disambig_rules` | 同名歧義消解（如「高山」） | ambiguous_term, context_regex, resolution, priority |
+| `landmarks` | 景點/機場 → 所屬城市 | landmark, location_id, type, country_id |
+| `role_keywords` | 角色判定關鍵詞（集合/轉機/比喻） | keyword, role, direction, weight |
+| `weak_signals` | 跨國弱信號詞庫（迪士尼、威尼斯、極光、馬爾地夫級…） | weak_signal, naive_country, possible_countries, required_strong, guidance |
 
-`type` 階層：`country` → `region`（可缺）→ `city`。景點不入 locations，放 landmark_index。
+`type` 階層：`country` → `region`（可缺）→ `city`。景點不入 `locations`，放 `landmarks` 表。
 
 `id` 命名：`國家2碼-地區3碼-城市3碼`，例 `JP-KTO-TYO`（日本-關東-東京）、`TW-TPE`（台灣-台北，無大區）、`CN-EAS-SHA`（中國-華東-上海）。
 
@@ -67,9 +67,9 @@ metadata:
 
 呼叫 `scripts/extract.py extract --text "<原文>"`（或 `--file <path>`）。內部會：
 
-1. 載入 5 張 CSV（`load_kb.py`）
-2. 用 `aliases.csv` 做**最長匹配掃描**，產出候選 `[(span, alias, candidate_ids, position)]`
-3. 同步把 `landmark_index.csv` 的景點/機場也納入候選
+1. 從 `data/geo_kb.db` 載入 6 張表（`load_kb.py`）
+2. 用 `aliases` 表（含 landmarks 別名）做**最長匹配掃描**（有 `pyahocorasick` 時走 Aho-Corasick 加速，否則退回線性掃描），產出候選 `[(span, alias, candidate_ids, position)]`
+3. 同步把 `landmarks` 表的景點/機場也納入候選
 
 ### Step 2.5 — 詞組層抽取與預檢（整合自 industry-term-composer）
 
@@ -97,9 +97,9 @@ metadata:
 
 ### Step 3 — 歧義消解
 
-對每個有多重 `candidate_ids` 的候選（或 `aliases.csv` 中 `alias_type='ambig'`），依序：
+對每個有多重 `candidate_ids` 的候選（或 `aliases` 表中 `alias_type='ambig'`），依序：
 
-1. 找出該詞在 `disambig_rules.csv` 中的所有規則
+1. 找出該詞在 `disambig_rules` 表中的所有規則
 2. 在文本中取**上下文視窗**（±N 字元，N 由 `window` 欄位指定，或 `full` 整篇）
 3. 用 `context_regex` 比對視窗
 4. 命中規則中 priority 最高者勝出，`resolution` = `SKIP` 則丟棄，否則綁定 `location_id`
@@ -107,7 +107,7 @@ metadata:
 
 ### Step 4 — 角色判定
 
-對每個地名候選，掃 `role_keywords.csv`：
+對每個地名候選，掃 `role_keywords` 表：
 
 - 在地名前後視窗中找關鍵詞
 - 命中 `departure / transit / exclude / metaphor / return` 任一 → **標記後不出現在最終標籤**
@@ -118,11 +118,11 @@ metadata:
 
 ### Step 5 — 景點反向映射
 
-`landmark_index.csv` 中匹配到的景點（如「富士山」「101」「合掌村」），自動補出 `location_id` → 加入結果樹的 city 層；同時繼承到 region/country 層。
+`landmarks` 表中匹配到的景點（如「富士山」「101」「合掌村」），自動補出 `location_id` → 加入結果樹的 city 層；同時繼承到 region/country 層。
 
 ### Step 5.5 — 弱信號掃描（v0.2 新增）
 
-掃描原文中是否出現 `weak_signals.csv` 列出的跨國行銷詞（共 ~180 筆）：
+掃描原文中是否出現 `weak_signals` 表列出的跨國行銷詞（目前 ~174 筆）：
 
 - **沒命中** → 跳過
 - **命中且該詞 `possible_countries` 中有國家已被識別為強信號** → 跳過（強信號錨定後，弱信號不需警告）
@@ -187,29 +187,7 @@ LLM 輸出 JSON：
 
 ## 維護對應表（增刪改）
 
-### 路徑 A：用 Excel 編輯（推薦給業務人員）
-
-直接打開 `C:\Users\User\Desktop\2d3d\旅遊表\旅遊DM國家關鍵字排除Mapping表.xlsx`：
-
-- Sheet 1「國家Mapping表」：每國一列，編輯強關鍵字、要排除/降權關鍵字、需人工覆核條件
-- Sheet 2「弱信號排除詞庫」：跨國行銷詞（迪士尼、極光、馬爾地夫級…）
-
-編完存檔後：
-
-```bash
-python scripts/import_xlsx.py
-```
-
-會增量寫入 6 張 CSV（locations/aliases/landmark/weak_signals），保留所有原有人工調校的規則（disambig_rules/role_keywords）。
-
-> **重要**：Excel = 業務維護權威主檔。CSV 是運行時快取。
-> `update_kb.py` CLI 主要供開發 hotfix；**業務日常請走 Excel**，否則編輯 Excel 時看不到 CLI 新增的列，可能誤刪。
-
-### 路徑 B：用命令列 `update_kb.py`（適合精準操作或新增 CSV 才有的欄位）
-
-```bash
-# 新增城市
-python scripts/update_kb.py add-location --id JP-HKD-WKK --name 稚內 --parent JP-HKD --type city
+所有維護都直接對 `data/geo_kb.db` 操作，用 `scripts/update_kb.py`：
 
 ```bash
 # 新增城市
@@ -224,18 +202,27 @@ python scripts/update_kb.py add-rule --term 神戶 --context "日本|港口" --r
 # 新增景點
 python scripts/update_kb.py add-landmark --name 哲學之道 --city JP-KSI-KYT --type district
 
+# 新增角色關鍵詞 / 弱信號
+python scripts/update_kb.py add-rolekw --keyword 集合 --role departure --direction right
+python scripts/update_kb.py add-weak --signal 馬爾地夫級 --possible "馬爾地夫、馬來西亞、菲律賓"
+
+# 刪除（複合主鍵用逗號分隔）
+python scripts/update_kb.py remove --table aliases --key "東瀛之都,JP-KTO-TYO"
+
 # 列出/查詢
 python scripts/update_kb.py list --type country
 python scripts/update_kb.py find --term 高山
 ```
 
-每次寫入：
+寫入行為：
 
-1. 預檢重複（同 id、同 alias→同 id 視為重複）
-2. 寫入後印一份 git diff 風格的摘要供 review
-3. 若有 LLM Step 6 提的 `unknown_terms`，提示用戶可批次新增
+1. 由 SQLite schema 的主鍵/外鍵約束擋重複與孤兒列；違反時印 `ERR: ...` 並以非零碼結束。
+2. 成功時印一行確認摘要（如 `+ locations  JP-HKD-WKK  稚內  (city)`）。
+3. 改完務必跑 `python scripts/validate_kb.py` 做完整性檢查（外鍵、regex 可編譯性、enum、階層正確性）。
 
-## 業務範圍（v0.2 — 整合 Excel 主檔後）
+> 因為 DB 已隨 repo 提交，任何改動都會反映在 `git diff data/geo_kb.db`；commit 前可用 `git diff` 或 `update_kb.py list` 複核。
+
+## 業務範圍（v0.2）
 
 41 個國家/地區，涵蓋大都會旅遊現有與潛在拓展市場：
 
@@ -269,24 +256,23 @@ v0.2 新增 33 國目前以**國家層**為主，城市/景點掛在國家 root 
 | G | 迪士尼度假村 5 日遊 | 無標籤 + 弱信號警告「迪士尼可能是多國」|
 | H | 東京迪士尼 5 日遊 | JP / 關東 / 東京（不發弱信號警告）|
 | I | 越南富國島 Grand World 仿威尼斯水都遊船 | VN / 富國島（不誤標義大利）|
-| J | 高山飯店 2 晚，5月出發 | `term_tags` 有飯店/日期/價格；地理層不應只靠飯店/日期語境標日本高山 |
+| J | 亞洲威尼斯水都遊覽 | 無標籤（「威尼斯」被消歧 SKIP，威尼斯入 filtered）|
+| K | 日本迪士尼歡樂遊 | JP（只到國家層）+ 弱信號警告「迪士尼」（國家層不算強錨定）|
+| L | 東京自由活動，集合於飯店 | JP / 關東 / 東京（無機場/航班 anchor，「集合」不觸發 departure）|
+| M | 高山飯店 2 晚，5月出發，每人 12900 起 | 無地理標籤；高山入 filtered；`term_tags` 有飯店/日期/價格 |
 
 跑：
 ```bash
 python scripts/extract.py test
 ```
 
-## 與工作目錄的同步
+## 資料來源與版本控制
 
-主表存放於 `~/.claude/skills/travel-geo-extract/data/`（規範版）。
+`data/geo_kb.db` 是唯一權威來源，已隨 repo 提交，無外部 Excel/CSV 副本或同步步驟。
+`update_kb.py` / `validate_kb.py` 都預設讀寫此檔（可用 `validate_kb.py --db <path>` 指向他處）。
+所有 KB 異動透過 git 版本控管：改完 commit `data/geo_kb.db` 即完成發佈。
 
-`C:\Users\User\Desktop\2d3d\旅遊表\data\` 放一份**人工編輯副本**，方便用 Excel 維護。`update_kb.py` 預設寫到 skill 目錄；如需從工作目錄 sync，用：
-
-```bash
-python scripts/update_kb.py sync --from "C:/Users/User/Desktop/2d3d/旅遊表/data"
-```
-
-## 已知限制（v0.1）
+## 已知限制
 
 - 圖片 OCR 對中文 DM 仍有 5-10% 字錯率，建議重要文案先人工校對
 - 景點層只覆蓋約 100+ 熱門景點，新景點需手動加表（LLM 會提示）
@@ -296,5 +282,7 @@ python scripts/update_kb.py sync --from "C:/Users/User/Desktop/2d3d/旅遊表/da
 ## 參考檔案
 
 - `reference/ddv_taxonomy.md` — 大都會網站分類對照
+- `reference/cli-examples.md` — CLI 用法範例
 - `prompts/llm_disambig.md` — LLM 消歧 prompt 模板
-- `tests/fixtures/` — 案例 A-E 完整輸入與期望輸出
+- `tests/fixtures/` — 案例 A-M 完整輸入與期望輸出
+- `scripts/audit_report.py` — 彙整 `logs/disambig_audit.jsonl`，判斷是否需 N-gram 遷移

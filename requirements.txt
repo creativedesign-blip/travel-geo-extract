@@ -1,0 +1,14 @@
+# travel-geo-extract dependencies
+#
+# Core extraction runs on the Python standard library alone (sqlite3, re,
+# argparse, json). The only third-party package is an OPTIONAL accelerator:
+#
+#   pyahocorasick — multi-pattern Aho-Corasick scan for candidate extraction.
+#       If absent, extract.py automatically falls back to a linear scan
+#       (correct, just slower on large alias/landmark tables). Install it for
+#       production throughput:  pip install -r requirements.txt
+#
+# The optional Codex LLM review (extract.py --llm path) shells out to the
+# `codex` CLI, which is installed separately and is NOT a pip dependency.
+
+pyahocorasick>=2.0

@@ -1,7 +1,8 @@
 """Load knowledge base from SQLite.
 
-The knowledge base lives in `../data/geo_kb.db`.  Build it from CSVs
-with `python scripts/build_db.py` before first use.
+The knowledge base lives in `../data/geo_kb.db`, which is the sole source
+of truth (there is no CSV/Excel pipeline). Maintain it directly with
+`python scripts/update_kb.py` and validate with `python scripts/validate_kb.py`.
 """
 
 from __future__ import annotations
@@ -274,7 +275,8 @@ def load_kb(data_dir: Path | str | None = None) -> KB:
     if not db_path.exists():
         raise FileNotFoundError(
             f"Knowledge base not found: {db_path}\n"
-            "Run 'python scripts/build_db.py' to build it from CSVs."
+            "The SQLite DB is the source of truth and is committed to the repo; "
+            "restore it from git (e.g. 'git checkout -- data/geo_kb.db')."
         )
     return _load_from_sqlite(db_path)
 
